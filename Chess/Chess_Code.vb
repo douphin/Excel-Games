@@ -1,65 +1,3 @@
-Sub CreateChessBoard()
-
-Dim ULRS As String
-Dim BR, tBR As Range
-Dim UL_R, UL_C As Integer
-Dim PieceArr(4) As String
-
-ULRS = CStr(ActiveSheet.Cells(1, 1))
-
-Set BR = Range(ULRS).Resize(8, 8)
-
-
-UL_R = Range(ULRS).Row
-UL_C = Range(ULRS).Column
-MsgBox Cells(1, 1).Height
-MsgBox Cells(1, 1).Width
-
-
-
-
-For i = 1 To 8
-    BR.Cells(2, i) = "Pawn"
-    BR.Cells(7, i) = "Pawn"
-    
-    For j = 1 To 8
-        BR.Cells(i, j).BorderAround _
-        Weight:=xlThin
-    Next
-    
-    BR.Cells(7, i).Interior.Color = RGB(0, 0, 0)
-    BR.Cells(8, i).Interior.Color = RGB(0, 0, 0)
-    BR.Cells(7, i).Font.Color = RGB(255, 255, 255)
-    BR.Cells(8, i).Font.Color = RGB(255, 255, 255)
-    
-Next
-
-BR.BorderAround _
-Weight:=xlThick
-
-BR.Cells(1, 1) = "Rook"
-BR.Cells(8, 1) = "Rook"
-BR.Cells(1, 8) = "Rook"
-BR.Cells(8, 8) = "Rook"
-
-BR.Cells(1, 2) = "Knight"
-BR.Cells(8, 2) = "Knight"
-BR.Cells(1, 7) = "Knight"
-BR.Cells(8, 7) = "Knight"
-
-BR.Cells(1, 3) = "Bishop"
-BR.Cells(8, 3) = "Bishop"
-BR.Cells(1, 6) = "Bishop"
-BR.Cells(8, 6) = "Bishop"
-
-BR.Cells(1, 4) = "Queen"
-BR.Cells(8, 4) = "Queen"
-BR.Cells(1, 5) = "King"
-BR.Cells(8, 5) = "King"
-
-
-
-End Sub
 Sub ClearBoard()
 
     ULRS = CStr(ActiveSheet.Cells(1, 1))
@@ -224,20 +162,6 @@ Sub NewBoard()
     
     
 End Sub
-
-
-Sub Macro8()
-'
-' Macro8 Macro
-'
-
-'
-    ActiveSheet.Shapes.Range(Array("Rectangle 3620")).Select
-    Selection.ShapeRange.Fill.Visible = msoFalse
-End Sub
-
-
-
 Function GetCellRow(ByVal Top As Double) As Integer
 
     Dim ULRS As String ' Upper Left Row String
@@ -297,7 +221,13 @@ Function GetCellCol(ByVal Left As Double) As Integer
     GetCellCol = Curr_Col
 
 End Function
-
+Function GetPieceColor(ByVal shp As Shape) As Boolean
+    If shp.TextFrame2.TextRange.Characters.Font.Fill.ForeColor.RGB = RGB(0, 0, 0) Then
+        GetPieceColor = True
+    Else
+        GetPieceColor = False
+    End If
+End Function
 
 
 
@@ -359,6 +289,11 @@ Sub Rook(ByVal Curr_Row, Curr_Col, CallingShape)
     Dim ULRS As String ' Upper Left Row String
     Dim BR, tBR As Range ' Board Range, temporary Board Range
     Dim UL_Row, UL_Col As Integer ' Upper Left Row, Upper Left Column
+    Dim isBlack As Boolean
+    
+    If CallingShape.TextFrame2.TextRange.Characters.Font.Fill.ForeColor.RGB = RGB(0, 0, 0) Then
+        isBlack = True
+    End If
     
     Dim deleted As Boolean
     
@@ -370,60 +305,114 @@ Sub Rook(ByVal Curr_Row, Curr_Col, CallingShape)
     UL_Row = Range(ULRS).Row
     UL_Col = Range(ULRS).Column
     
-    Dim Lb, Rb, Tb, Ub As Double ' left, right, top, bottom bound
+    Dim Leb, Rib, Upb, Lob As Integer ' left, right, upper, lower bound
+    
+    Leb = 0
+    Rib = 9
+    Upb = 0
+    Lob = 9
+    
     Dim VerticalBound() As Double
  
-    
+    ' TODO: Check if own yellow turned off
     For Each shp In ActiveSheet.Shapes
         If shp.Line.ForeColor.RGB = RGB(255, 255, 0) Then
             shp.Delete
             deleted = True
         End If
-        
-        
     Next shp
     
     If deleted Then
-            Exit Sub
-        End If
+        Exit Sub
+    End If
     
     i = 0
     For Each shp In ActiveSheet.Shapes
         If shp.Left = CallingShape.Left And shp.Top <> CallingShape.Top Then
-            ReDim Preserve VerticalBound(i)
-            VerticalBound(i) = shp.Top
+            ivert = GetCellRow(shp.Top)
+            
+            If GetPieceColor(shp) <> GetPieceColor(CallingShape) Then
+                i = 1
+            End If
+        
+            If ivert < Curr_Row And ivert > Upb Then
+        
+                Upb = ivert - i
+            
+            End If
+        
+            If ivert > Curr_Row And ivert < Lob Then
+            
+                Lob = ivert + i
+            
+            End If
+            
+            i = 0
         End If
+        
+        If shp.Top = CallingShape.Top And shp.Left <> CallingShape.Left Then
+            ivert = GetCellCol(shp.Left)
+            
+            If GetPieceColor(shp) <> GetPieceColor(CallingShape) Then
+                i = 1
+            End If
+        
+            If ivert < Curr_Col And ivert > Leb Then
+        
+                Leb = ivert - i
+            
+            End If
+        
+            If ivert > Curr_Col And ivert < Rib Then
+            
+                Rib = ivert + i
+            
+            End If
+            
+            i = 0
+        End If
+        
     Next shp
     
-    For Each Vert In VerticalBound
-        iVert = GetCellRow(Vert)
-        
-        If iVert + 1 < Curr_Row Then
+    For i = Upb + 1 To Lob - 1
+        If i <> Curr_Row Then
+            ActiveSheet.Shapes.AddShape(msoShapeRectangle, CallingShape.Left, Cells(i + UL_Row - 1, Curr_Col).Top, _
+            Cells(i, Curr_Col).Width, Cells(i, Curr_Col).Height).Select
+                
+            Selection.ShapeRange.TextFrame2.TextRange.Characters.Text = CallingShape.ID
             
-            For i = iVert + 1 To Curr_Row - 1
+            Selection.ShapeRange.TextFrame2.TextRange.Font.Size = 1
+            ' Making the color of the shape transparent so the colors of the board will show through
+            Selection.ShapeRange.Fill.Visible = msoFalse
                 
-                ActiveSheet.Shapes.AddShape(msoShapeRectangle, CallingShape.Left, Cells(i + UL_Row - 1, Curr_Col).Top, Cells(i, _
-                Curr_Col).Width, Cells(i, Curr_Col).Height).Select
+            ' Set buttons to show potential moves
+            Selection.OnAction = "MovePiece"
                 
-
-                ' Making the color of the shape transparent so the colors of the board will show through
-                Selection.ShapeRange.Fill.Visible = msoFalse
-                
-                ' Set buttons to show potential moves
-                Selection.OnAction = "PotentialLocation" ' CurrPieceArr(j - 1)
-                
-                Selection.ShapeRange.Line.ForeColor.RGB = RGB(255, 255, 0)
-                
-            Next
-            
+            Selection.ShapeRange.Line.ForeColor.RGB = RGB(255, 255, 0)
         End If
     Next
     
-    
-    
-    
-    
+    For i = Leb + 1 To Rib - 1
+        If i <> Curr_Col Then
+            ActiveSheet.Shapes.AddShape(msoShapeRectangle, Cells(Curr_Row, i + UL_Col - 1).Left, CallingShape.Top, _
+            Cells(Curr_Row, i).Width, Cells(Curr_Row, i).Height).Select
+                            
+            Selection.ShapeRange.TextFrame2.TextRange.Characters.Text = CallingShape.ID
+            
+            Selection.ShapeRange.TextFrame2.TextRange.Font.Size = 1
 
+            ' Making the color of the shape transparent so the colors of the board will show through
+            Selection.ShapeRange.Fill.Visible = msoFalse
+                
+            ' Set buttons to show potential moves
+            Selection.OnAction = "MovePiece"
+                
+            Selection.ShapeRange.Line.ForeColor.RGB = RGB(255, 255, 0)
+        End If
+    Next
+  
+    
+Range("A1").Select
 End Sub
 Sub Knight(ByVal Curr_Row, Curr_Col, CallingShape)
 
@@ -449,6 +438,40 @@ Sub King(ByVal Curr_Row, Curr_Col, CallingShape)
     MsgBox Curr_Col
 
 End Sub
+Sub MovePiece()
+
+    Dim CallingShape As Shape
+    Set CallingShape = ActiveSheet.Shapes(Application.Caller)
+    
+    For Each shp In ActiveSheet.Shapes
+        If shp.ID = CallingShape.TextFrame2.TextRange.Characters.Text Then
+            
+            CallingShape.OnAction = shp.OnAction
+            
+            CallingShape.Line.ForeColor.RGB = shp.Line.ForeColor.RGB
+            
+            CallingShape.TextFrame2.TextRange.Characters.Text = shp.TextFrame2.TextRange.Characters.Text
+            
+            CallingShape.TextFrame2.TextRange.Font.Size = shp.TextFrame2.TextRange.Font.Size
+            
+            CallingShape.TextFrame2.TextRange.Characters.Font.Fill.ForeColor.RGB = shp.TextFrame2.TextRange.Characters.Font.Fill.ForeColor.RGB
+            
+            With CallingShape.TextFrame2
+                .VerticalAnchor = msoAnchorMiddle
+                .HorizontalAnchor = msoAnchorCenter
+            End With
+            
+            shp.Delete
+            
+        ElseIf shp.Line.ForeColor.RGB = RGB(255, 255, 0) Then
+            shp.Delete
+        ElseIf shp.Left = CallingShape.Left And shp.Top = CallingShape.Top And shp.ID <> CallingShape.ID Then
+            shp.Delete
+        End If
+    Next shp
+
+End Sub
+
 Sub buffer()
 
 
