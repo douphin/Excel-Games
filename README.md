@@ -29,3 +29,13 @@ A Personal Project of trying to code simple games into excel using vba. Currentl
 14. We're almost there, go back and follow steps 7 and 8 to re-open the macro menu
 15. There should now be a whole host of macros listed, find the one labled `NewBoard`, select it and click `Run`
 16. Everything to play should now be set up, Enjoy.
+
+### Additional Info
+If you used method 2 to copy and paste the code, and you want to save the workbook, you need to make sure you save it as a Macro-Enabled Workbook (.xlsm) not the standard (.xlsx) otherwise it won't save any of the macros.
+
+If you are interested in writing your own macros, I would recommmend activating developer setting inside of excel, to do this:
+1. Click `File` in the top left of Excel
+2. Then go down and click `Options`
+3. Then in the menu that pops up find the tab that says `Customize Ribbon` and click that
+4. Now, on the right, find and check the box labeled `Developer`
+
