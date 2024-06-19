@@ -9,7 +9,7 @@ A Personal Project of trying to code simple games into excel using vba. Currentl
  2. Open the corresponding folder
  3. Click on the file with the .xlsm extension
  4. The workbook can now be downloaded using the `Downlaod Raw File` button
- 5. The workbook now needs to be unlocked, follow instructions found [here] (https://support.microsoft.com/en-us/topic/a-potentially-dangerous-macro-has-been-blocked-0952faa0-37e7-4316-b61d-5b5ed6024216) to do so
+ 5. The workbook now needs to be unlocked, follow instructions found [here](https://support.microsoft.com/en-us/topic/a-potentially-dangerous-macro-has-been-blocked-0952faa0-37e7-4316-b61d-5b5ed6024216) to do so
  6. Open the workbook and enjoy
 
 ### Method 2: Copy and Paste Code
